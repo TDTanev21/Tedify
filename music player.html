@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tedify</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom Scrollbar to match "scrollbar-hide" aesthetic but still be usable */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #888; 
+        }
+
+        /* Hide scrollbar for specific elements if needed */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            margin-top: -4px;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+            opacity: 0; 
+            transition: opacity 0.2s;
+        }
+        .group:hover input[type=range]::-webkit-slider-thumb {
+            opacity: 1;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: transparent;
+            border-radius: 2px;
+        }
+        
+        .playing-gif {
+            display: none;
+        }
+        .active-track .playing-gif {
+            display: block;
+        }
+        .active-track .track-index {
+            display: none;
+        }
+        .active-track {
+            color: #22c55e;
+        }
+    </style>
+</head>
+<body class="bg-black text-white h-screen flex flex-col overflow-hidden font-sans selection:bg-green-500 selection:text-black">
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <div class="w-64 bg-black h-full flex flex-col gap-2 p-2 hidden md:flex">
+            <div class="bg-[#121212] rounded-lg p-4 flex flex-col gap-4">
+                <div class="flex items-center gap-4 text-white hover:text-white cursor-pointer transition">
+                    <i data-lucide="home" width="24"></i>
+                    <span class="font-bold">Начало</span>
+                </div>
+                <div class="flex items-center gap-4 text-gray-400 hover:text-white cursor-pointer transition">
+                    <i data-lucide="search" width="24"></i>
+                    <span class="font-bold">Търсене</span>
+                </div>
+            </div>
+
+            <div class="bg-[#121212] rounded-lg flex-1 overflow-hidden flex flex-col">
+                <div class="p-4 shadow-lg z-10">
+                    <div class="flex items-center justify-between text-gray-400 mb-4">
+                        <div class="flex items-center gap-2 hover:text-white cursor-pointer transition">
+                            <i data-lucide="library" width="24"></i>
+                            <span class="font-bold">Библиотека</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <i data-lucide="plus" width="20" class="hover:text-white cursor-pointer"></i>
+                            <i data-lucide="arrow-right" width="20" class="hover:text-white cursor-pointer"></i>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <span class="bg-[#232323] px-3 py-1 rounded-full text-sm text-white cursor-pointer hover:bg-[#3E3E3E] transition">Плейлисти</span>
+                        <span class="bg-[#232323] px-3 py-1 rounded-full text-sm text-white cursor-pointer hover:bg-[#3E3E3E] transition">Изпълнители</span>
+                    </div>
+                </div>
+                
+                <div class="overflow-y-auto px-2 pb-4 scrollbar-hide" id="sidebar-content">
+                    <div class="flex items-center justify-between px-2 py-2 text-gray-400 hover:text-white cursor-pointer">
+                        <i data-lucide="search" width="16"></i>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span>Скорошни</span>
+                            <i data-lucide="list-music" width="16"></i>
+                        </div>
+                    </div>
+                    <!-- Dynamic Playlist Items will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div id="main-scroll" class="flex-1 bg-[#121212] rounded-lg m-2 ml-0 overflow-y-auto relative scrollbar-hide">
+            
+            <!-- Header -->
+            <div id="sticky-header" class="sticky top-0 h-16 w-full z-20 flex items-center justify-between px-6 transition-colors duration-300 bg-transparent">
+                <div class="flex gap-2">
+                    <div class="bg-black/70 p-1 rounded-full cursor-pointer hover:bg-black text-white">
+                        <i data-lucide="chevron-left" width="24"></i>
+                    </div>
+                    <div class="bg-black/70 p-1 rounded-full cursor-pointer hover:bg-black text-white">
+                        <i data-lucide="chevron-right" width="24"></i>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <button class="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm hover:scale-105 transition">Разгледай Premium</button>
+                    <button class="bg-black/70 text-white font-bold px-4 py-1.5 rounded-full text-sm flex items-center gap-2 hover:scale-105 transition">
+                         <i data-lucide="arrow-down-circle" width="16"></i> Инсталирай приложението
+                    </button>
+                    <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold cursor-pointer border-2 border-black">
+                        A
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Background Gradient -->
+            <div id="hero-gradient" class="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-emerald-900 to-[#121212] opacity-80 pointer-events-none transition-colors duration-1000"></div>
+
+            <div class="relative z-10 px-6 pt-4 pb-24">
+                <h1 class="text-3xl font-bold text-white mb-6" id="greeting">Добър ден</h1>
+
+                <!-- Quick Picks Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="quick-picks">
+                    <!-- Javascript will populate this -->
+                </div>
+
+                <!-- Section: Made For You -->
+                <h2 class="text-2xl font-bold text-white mb-4 hover:underline cursor-pointer">Специално за теб</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6" id="made-for-you">
+                    <!-- Javascript will populate this -->
+                </div>
+                
+                <!-- Table View of Tracks -->
+                <div class="mt-12">
+                    <h2 class="text-2xl font-bold text-white mb-4">Твоите любими песни</h2>
+                    <div class="bg-black/20 p-6 rounded-lg">
+                        <div class="grid grid-cols-[16px_4fr_3fr_2fr_minmax(120px,1fr)] gap-4 text-gray-400 text-sm border-b border-white/10 pb-2 mb-4 px-4">
+                            <span>#</span>
+                            <span>Заглавие</span>
+                            <span>Албум</span>
+                            <span>Добавено</span>
+                            <span class="flex justify-end"><i data-lucide="clock" width="16"></i></span>
+                        </div>
+                        <div id="tracks-table">
+                            <!-- Javascript will populate this -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-24"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAYER BAR -->
+    <div class="h-24 bg-black border-t border-[#282828] px-4 flex items-center justify-between fixed bottom-0 w-full z-50">
+        
+        <!-- Track Info -->
+        <div class="flex items-center gap-4 w-[30%]">
+            <img id="current-cover" src="" alt="" class="h-14 w-14 rounded object-cover shadow-lg hidden">
+            <div class="flex flex-col justify-center overflow-hidden">
+                <span id="current-title" class="text-white font-sm hover:underline cursor-pointer truncate font-medium">Избери песен...</span>
+                <span id="current-artist" class="text-gray-400 text-xs hover:text-white hover:underline cursor-pointer truncate"></span>
+            </div>
+            <i data-lucide="heart" width="18" class="text-green-500 ml-2 cursor-pointer hover:scale-110 transition hidden" id="like-btn"></i>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col items-center max-w-[40%] w-full gap-2">
+            <div class="flex items-center gap-6">
+                <i data-lucide="shuffle" width="18" class="text-gray-400 hover:text-white cursor-pointer transition"></i>
+                <i data-lucide="skip-back" width="22" class="text-gray-400 hover:text-white cursor-pointer transition fill-current" onclick="playPrev()"></i>
+                
+                <button id="play-pause-btn" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition active:scale-95" onclick="togglePlay()">
+                    <i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>
+                </button>
+                
+                <i data-lucide="skip-forward" width="22" class="text-gray-400 hover:text-white cursor-pointer transition fill-current" onclick="playNext()"></i>
+                <i data-lucide="repeat" width="18" class="text-gray-400 hover:text-white cursor-pointer transition"></i>
+            </div>
+            
+            <div class="w-full flex items-center gap-2 text-xs text-gray-400 font-mono">
+                <span id="current-time">0:00</span>
+                <div class="flex-1 h-1 bg-[#4d4d4d] rounded-full relative group cursor-pointer">
+                    <div id="progress-bar" class="absolute h-full bg-white rounded-full group-hover:bg-green-500 transition-colors" style="width: 0%"></div>
+                    <input type="range" id="seek-slider" min="0" max="100" value="0" class="absolute w-full h-full opacity-0 cursor-pointer z-10">
+                </div>
+                <span id="duration-time">0:00</span>
+            </div>
+        </div>
+
+        <!-- Volume & Extras -->
+        <div class="flex items-center justify-end gap-3 w-[30%] text-gray-400">
+            <i data-lucide="mic-2" width="18" class="hover:text-white cursor-pointer"></i>
+            <i data-lucide="list-music" width="18" class="hover:text-white cursor-pointer"></i>
+            <i data-lucide="laptop-2" width="18" class="hover:text-white cursor-pointer"></i>
+            <div class="flex items-center gap-2 w-32 group">
+                <i data-lucide="volume-2" width="18" class="hover:text-white cursor-pointer"></i>
+                <div class="h-1 flex-1 bg-[#4d4d4d] rounded-full relative overflow-hidden cursor-pointer">
+                    <div id="volume-bar" class="absolute top-0 left-0 h-full bg-white group-hover:bg-green-500 rounded-full" style="width: 70%"></div>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.7" class="absolute w-full h-full opacity-0 cursor-pointer z-10">
+                </div>
+            </div>
+            <i data-lucide="maximize-2" width="16" class="hover:text-white cursor-pointer"></i>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA ---
+        const TRACKS = [
+            {
+                id: 1,
+                title: "Night Drive Phonk",
+                artist: "Imanbek, Byor",
+                album: "Phonk Edition",
+                duration: "2:45",
+                cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop",
+                color: "from-purple-800",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" 
+            },
+            {
+                id: 2,
+                title: "Midnight City",
+                artist: "M83",
+                album: "Hurry Up, We're Dreaming",
+                duration: "4:03",
+                cover: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=1000&auto=format&fit=crop",
+                color: "from-blue-800",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+            },
+            {
+                id: 3,
+                title: "Starboy",
+                artist: "The Weeknd, Daft Punk",
+                album: "Starboy",
+                duration: "3:50",
+                cover: "https://images.unsplash.com/photo-1619983081563-430f63602796?q=80&w=1000&auto=format&fit=crop",
+                color: "from-red-900",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+            },
+            {
+                id: 4,
+                title: "Do I Wanna Know?",
+                artist: "Arctic Monkeys",
+                album: "AM",
+                duration: "4:32",
+                cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop",
+                color: "from-gray-800",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+            },
+            {
+                id: 5,
+                title: "Levitating",
+                artist: "Dua Lipa",
+                album: "Future Nostalgia",
+                duration: "3:23",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-RPjQJ9hYnROIYlFVIkzVTEAqOyJkOFUQtg&s",
+                color: "from-pink-800",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+            }
+        ];
+
+        const PLAYLISTS = [
+            "Любими песни", "BG Rap 2024", "Фитнес Мотивация", "Chill Vibes", "Techno Bunker", "Top 50 - Bulgaria"
+        ];
+
+        // --- STATE & AUDIO ---
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let audio = new Audio();
+        
+        // --- DOM ELEMENTS ---
+        const greetingEl = document.getElementById('greeting'); 
+        const sidebarContent = document.getElementById('sidebar-content');
+        const quickPicksEl = document.getElementById('quick-picks');
+        const madeForYouEl = document.getElementById('made-for-you');
+        const tracksTableEl = document.getElementById('tracks-table');
+        
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = `<i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>`;
+        const pauseIcon = `<i data-lucide="pause" width="20" class="text-black fill-black"></i>`;
+        
+        const currentTitleEl = document.getElementById('current-title');
+        const currentArtistEl = document.getElementById('current-artist');
+        const currentCoverEl = document.getElementById('current-cover');
+        const likeBtnEl = document.getElementById('like-btn');
+        const heroGradient = document.getElementById('hero-gradient');
+
+        const seekSlider = document.getElementById('seek-slider');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationTimeEl = document.getElementById('duration-time');
+
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeBar = document.getElementById('volume-bar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            setGreeting();
+            renderSidebar();
+            renderQuickPicks();
+            renderMadeForYou();
+            renderTracksTable();
+            loadTrack(0, false); // Load first track but don't play
+            
+            // Audio Events
+            audio.addEventListener('timeupdate', updateProgress);
+            audio.addEventListener('loadedmetadata', () => {
+                durationTimeEl.innerText = formatTime(audio.duration);
+                seekSlider.max = Math.floor(audio.duration);
+            });
+            audio.addEventListener('ended', playNext);
+            
+            // Input Events
+            seekSlider.addEventListener('input', () => {
+                audio.currentTime = seekSlider.value;
+                updateProgress(); // Immediate visual update
+            });
+            
+            volumeSlider.addEventListener('input', (e) => {
+                audio.volume = e.target.value;
+                volumeBar.style.width = (e.target.value * 100) + '%';
+            });
+
+            // Scroll Effect
+            document.getElementById('main-scroll').addEventListener('scroll', (e) => {
+                const opacity = Math.min(e.target.scrollTop / 200, 1);
+                document.getElementById('sticky-header').style.backgroundColor = `rgba(18, 18, 18, ${opacity})`;
+            });
+
+            lucide.createIcons();
+        }
+
+        // --- FUNCTIONS ---
+
+        function setGreeting() {
+            const hour = new Date().getHours();
+            let text = "Добър вечер";
+            if (hour < 12) text = "Добро утро";
+            else if (hour < 18) text = "Добър ден";
+            greetingEl.innerText = text;
+        }
+
+        function renderSidebar() {
+            PLAYLISTS.forEach(playlist => {
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-3 p-2 rounded-md hover:bg-[#1f1f1f] cursor-pointer group";
+                div.innerHTML = `
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded flex items-center justify-center text-white">
+                        <i data-lucide="list-music" width="20"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-white font-medium truncate w-32">${playlist}</span>
+                        <span class="text-gray-400 text-sm group-hover:text-white">Плейлист • Ti</span>
+                    </div>
+                `;
+                sidebarContent.appendChild(div);
+            });
+        }
+
+        function renderQuickPicks() {
+            TRACKS.slice(0, 6).forEach((track, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-white/10 group hover:bg-white/20 transition rounded flex items-center gap-4 overflow-hidden cursor-pointer h-20";
+                div.onclick = () => loadTrack(index, true);
+                div.innerHTML = `
+                    <img src="${track.cover}" alt="" class="h-full w-20 object-cover shadow-lg">
+                    <span class="font-bold text-white truncate flex-1 pr-2">${track.title}</span>
+                    <div class="mr-4 bg-green-500 rounded-full p-3 shadow-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center play-btn-hover">
+                         <i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>
+                    </div>
+                `;
+                quickPicksEl.appendChild(div);
+            });
+        }
+
+        function renderMadeForYou() {
+            TRACKS.forEach((track, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition duration-300 cursor-pointer group flex flex-col gap-3";
+                div.onclick = () => loadTrack(index, true);
+                div.innerHTML = `
+                    <div class="relative w-full aspect-square rounded-md overflow-hidden shadow-xl">
+                        <img src="${track.cover}" alt="${track.title}" class="w-full h-full object-cover">
+                        <div class="absolute bottom-2 right-2 bg-green-500 rounded-full p-3 shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center hover:scale-105">
+                            <i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold truncate mb-1">${track.title}</h3>
+                        <p class="text-gray-400 text-sm line-clamp-2">By ${track.artist}</p>
+                    </div>
+                `;
+                madeForYouEl.appendChild(div);
+            });
+        }
+
+        function renderTracksTable() {
+            tracksTableEl.innerHTML = '';
+            TRACKS.forEach((track, index) => {
+                const div = document.createElement('div');
+                div.id = `track-row-${index}`;
+                div.className = "grid grid-cols-[16px_4fr_3fr_2fr_minmax(120px,1fr)] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 cursor-pointer group text-sm text-gray-400";
+                div.onclick = () => loadTrack(index, true);
+                
+                div.innerHTML = `
+                    <span class="track-index group-hover:hidden">${index + 1}</span>
+                    <span class="hidden group-hover:block text-white play-icon-row">
+                        <i data-lucide="play" width="14" fill="currentColor"></i>
+                    </span>
+                    <span class="playing-gif text-green-500 hidden">
+                         <i data-lucide="bar-chart-2" width="14" class="text-green-500"></i>
+                    </span>
+                    
+                    <div class="flex items-center gap-3">
+                        <img src="${track.cover}" class="w-10 h-10 rounded" alt="">
+                        <div class="flex flex-col">
+                            <span class="font-medium text-base truncate text-white track-title-row">${track.title}</span>
+                            <span class="group-hover:text-white transition">${track.artist}</span>
+                        </div>
+                    </div>
+                    <span class="group-hover:text-white transition truncate">${track.album}</span>
+                    <span class="group-hover:text-white transition">Преди 2 дни</span>
+                    <div class="flex items-center justify-end gap-4">
+                        <i data-lucide="heart" width="16" class="hidden group-hover:block hover:text-green-500 cursor-pointer"></i>
+                        <span class="text-right">${track.duration}</span>
+                        <i data-lucide="more-horizontal" width="16" class="hidden group-hover:block hover:text-white cursor-pointer"></i>
+                    </div>
+                `;
+                tracksTableEl.appendChild(div);
+            });
+            lucide.createIcons(); // Re-init icons for dynamic content
+        }
+
+        function loadTrack(index, shouldPlay = true) {
+            currentTrackIndex = index;
+            const track = TRACKS[index];
+            
+            // Update Audio Source
+            audio.src = track.audioUrl;
+            
+            // Update UI Info
+            currentTitleEl.innerText = track.title;
+            currentArtistEl.innerText = track.artist;
+            currentCoverEl.src = track.cover;
+            currentCoverEl.classList.remove('hidden');
+            likeBtnEl.classList.remove('hidden');
+            
+            // Update Gradient
+            heroGradient.className = `absolute top-0 left-0 w-full h-80 bg-gradient-to-b ${track.color} to-[#121212] opacity-80 pointer-events-none transition-colors duration-1000`;
+
+            // Highlight in Table
+            updateTableHighlight(index);
+
+            if (shouldPlay) {
+                audio.play();
+                isPlaying = true;
+                updatePlayButton();
+            }
+        }
+
+        function updateTableHighlight(activeIndex) {
+            // Reset all rows
+            for (let i = 0; i < TRACKS.length; i++) {
+                const row = document.getElementById(`track-row-${i}`);
+                if (row) {
+                    row.classList.remove('active-track');
+                    row.querySelector('.track-title-row').classList.remove('text-green-500');
+                    row.querySelector('.track-title-row').classList.add('text-white');
+                    // Hide playing icon, show index
+                    row.querySelector('.playing-gif').classList.add('hidden');
+                    row.querySelector('.track-index').classList.remove('hidden');
+                }
+            }
+
+            // Highlight active
+            const activeRow = document.getElementById(`track-row-${activeIndex}`);
+            if (activeRow) {
+                activeRow.classList.add('active-track');
+                activeRow.querySelector('.track-title-row').classList.add('text-green-500');
+                activeRow.querySelector('.track-title-row').classList.remove('text-white');
+                // Show playing icon, hide index
+                activeRow.querySelector('.playing-gif').classList.remove('hidden');
+                activeRow.querySelector('.track-index').classList.add('hidden');
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+            } else {
+                audio.play();
+                isPlaying = true;
+            }
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            if (isPlaying) {
+                playPauseBtn.innerHTML = pauseIcon;
+            } else {
+                playPauseBtn.innerHTML = playIcon;
+            }
+            lucide.createIcons();
+        }
+
+        function playNext() {
+            let nextIndex = currentTrackIndex + 1;
+            if (nextIndex >= TRACKS.length) nextIndex = 0;
+            loadTrack(nextIndex, true);
+        }
+
+        function playPrev() {
+            let prevIndex = currentTrackIndex - 1;
+            if (prevIndex < 0) prevIndex = TRACKS.length - 1;
+            loadTrack(prevIndex, true);
+        }
+
+        function updateProgress() {
+            const { duration, currentTime } = audio;
+            const percent = (currentTime / duration) * 100;
+            
+            if (!isNaN(duration)) {
+                seekSlider.value = currentTime;
+                progressBar.style.width = `${percent}%`;
+                currentTimeEl.innerText = formatTime(currentTime);
+            }
+        }
+
+        function formatTime(seconds) {
+            if (!seconds) return "0:00";
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        // Run Init
+        init();
+
+    </script>
+</body>
+</html>
