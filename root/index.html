@@ -240,6 +240,70 @@
 
     </div>
 
+    <!-- UPLOAD MODAL -->
+    <div id="upload-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+        <div class="bg-[#282828] rounded-lg p-8 w-96 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">Добави нова песен</h2>
+                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" width="24"></i>
+                </button>
+            </div>
+            
+            <form id="upload-form" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Заглавие на песента</label>
+                    <input type="text" id="song-title" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="Night Drive" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Изпълнител</label>
+                    <input type="text" id="song-artist" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="Artist Name" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Албум</label>
+                    <input type="text" id="song-album" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="Album Name" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Продължителност (мм:сс)</label>
+                    <input type="text" id="song-duration" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="3:45" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">MP3 Файл</label>
+                    <input type="file" id="song-mp3" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none cursor-pointer" accept=".mp3" required>
+                    <p class="text-xs text-gray-400 mt-1">Максимален размер: 50MB</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">URL на корицата</label>
+                    <input type="url" id="song-cover" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="https://example.com/cover.jpg" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Цветов градиент</label>
+                    <select id="song-color" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" required>
+                        <option value="">Избери цвят...</option>
+                        <option value="from-purple-800">Лилав</option>
+                        <option value="from-blue-800">Синьо</option>
+                        <option value="from-red-900">Червено</option>
+                        <option value="from-green-800">Зелено</option>
+                        <option value="from-amber-800">Амбър</option>
+                        <option value="from-pink-800">Розово</option>
+                        <option value="from-yellow-800">Жълто</option>
+                        <option value="from-indigo-800">Индиго</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full bg-green-500 text-black font-bold py-2 rounded-full hover:bg-green-400 hover:scale-105 transition">
+                    Добави песен
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
         const TRACKS = [
             {
@@ -284,6 +348,16 @@
             },
             {
                 id: 5,
+                title: "Балкаnska двойка",
+                artist: "Selina, DJ damyan",
+                album: "Балкан",
+                duration: "3:15",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7wShQQBIorw9M5hHkwavWjQoAGPmKgahn-w&s",
+                color: "from-amber-800",
+                audioUrl: "./Balkan-Dvoyoka-Selina-Dj-Damyan.mp3"
+            },
+            {
+                id: 6,
                 title: "Levitating",
                 artist: "Dua Lipa",
                 album: "Future Nostalgia",
@@ -298,12 +372,10 @@
             "Любими песни", "BG Rap 2024", "Фитнес Мотивация", "Chill Vibes", "Techno Bunker", "Top 50 - Bulgaria"
         ];
 
-        // --- STATE & AUDIO ---
         let currentTrackIndex = 0;
         let isPlaying = false;
         let audio = new Audio();
         
-        // --- DOM ELEMENTS ---
         const greetingEl = document.getElementById('greeting'); 
         const sidebarContent = document.getElementById('sidebar-content');
         const quickPicksEl = document.getElementById('quick-picks');
@@ -568,6 +640,92 @@
             const sec = Math.floor(seconds % 60);
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
+
+        // Upload Modal Functions
+        function openUploadModal() {
+            document.getElementById('upload-modal').classList.remove('hidden');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('upload-modal').classList.add('hidden');
+            document.getElementById('upload-form').reset();
+        }
+
+        function addNewTrack(trackData) {
+            const newId = Math.max(...TRACKS.map(t => t.id)) + 1;
+            const newTrack = {
+                id: newId,
+                title: trackData.title,
+                artist: trackData.artist,
+                album: trackData.album,
+                duration: trackData.duration,
+                cover: trackData.cover,
+                color: trackData.color,
+                audioUrl: trackData.audioUrl
+            };
+            TRACKS.push(newTrack);
+            renderTracksTable(); // Re-render the table
+            renderMadeForYou(); // Re-render other sections
+        }
+
+        // Plus button click handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const plusBtn = document.querySelector('[data-lucide="plus"]');
+            if (plusBtn) {
+                plusBtn.addEventListener('click', openUploadModal);
+            }
+        });
+
+        // Upload form submission
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('song-title').value;
+            const artist = document.getElementById('song-artist').value;
+            const album = document.getElementById('song-album').value;
+            const duration = document.getElementById('song-duration').value;
+            const cover = document.getElementById('song-cover').value;
+            const mp3File = document.getElementById('song-mp3').files[0];
+            const color = document.getElementById('song-color').value;
+
+            if (!title || !artist || !album || !duration || !cover || !mp3File || !color) {
+                alert('Моля, попълни всички полета!');
+                return;
+            }
+
+            // Check file size (max 50MB)
+            const maxSize = 50 * 1024 * 1024;
+            if (mp3File.size > maxSize) {
+                alert('MP3 файлът е твърде голям! Максимум 50MB.');
+                return;
+            }
+
+            // Check file type
+            if (mp3File.type !== 'audio/mpeg') {
+                alert('Моля, избери MP3 файл!');
+                return;
+            }
+
+            // Create a URL for the uploaded file
+            const audioUrl = URL.createObjectURL(mp3File);
+            const fileName = mp3File.name;
+
+            addNewTrack({
+                title,
+                artist,
+                album,
+                duration,
+                cover,
+                audioUrl, // Use the blob URL
+                fileName, // Store original filename for reference
+                color
+            });
+
+            // Clear form and close modal
+            this.reset();
+            closeUploadModal();
+            alert(`Песента "${title}" е добавена успешно!`);
+        });
 
         // Run Init
         init();
