@@ -9,7 +9,8 @@
 		/* Full-screen background image */
 		html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
 		body{
-			background: url("map eagle loook.jpg") center/cover no-repeat fixed;
+			/* use a safe filename (no spaces) for hosted environments */
+			background: url("map-eagle-loook.jpg") center/cover no-repeat fixed;
 			display:flex;align-items:center;justify-content:center;color:#fff;
 		}
 
@@ -64,7 +65,7 @@
 		</div>
 
 		<div class="actions" role="region" aria-label="Действия">
-			<a id="listen-btn" class="btn btn-primary" href="music.html">Слушай музика</a>
+			<a id="listen-btn" class="btn btn-primary" href="./music.html">Слушай музика</a>
 			<a class="btn btn-ghost" href="mailto:admin@tedify.local">За контакти</a>
 		</div>
 	</main>
@@ -90,5 +91,25 @@
 		})();
 	</script>
 
-</html>
+	<script>
+		// Background image fallback: try hyphenated filename first, then original with spaces.
+		(function(){
+			const tryUrls = [
+				'map-eagle-loook.jpg',
+				'map%20eagle%20loook.jpg',
+				'map eagle loook.jpg'
+			];
+
+			function tryLoad(index){
+				if (index >= tryUrls.length) return;
+				const url = tryUrls[index];
+				const img = new Image();
+				img.onload = () => { document.body.style.backgroundImage = `url("${url}")`; };
+				img.onerror = () => tryLoad(index+1);
+				img.src = url;
+			}
+			tryLoad(0);
+		})();
+	</script>
+
 </html>
