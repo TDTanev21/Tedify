@@ -1,738 +1,94 @@
+
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tedify</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        /* Custom Scrollbar to match "scrollbar-hide" aesthetic but still be usable */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #555; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #888; 
-        }
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Временно прекъсване — Tedify</title>
+	<style>
+		/* Full-screen background image */
+		html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+		body{
+			background: url("map eagle loook.jpg") center/cover no-repeat fixed;
+			display:flex;align-items:center;justify-content:center;color:#fff;
+		}
 
-        /* Hide scrollbar for specific elements if needed */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        
-        /* Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-            margin-top: -4px;
-            box-shadow: 0 0 2px rgba(0,0,0,0.5);
-            opacity: 0; 
-            transition: opacity 0.2s;
-        }
-        .group:hover input[type=range]::-webkit-slider-thumb {
-            opacity: 1;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: transparent;
-            border-radius: 2px;
-        }
-        
-        .playing-gif {
-            display: none;
-        }
-        .active-track .playing-gif {
-            display: block;
-        }
-        .active-track .track-index {
-            display: none;
-        }
-        .active-track {
-            color: #22c55e;
-        }
-    </style>
+		/* overlay to improve contrast */
+		.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55)}
+
+		/* Card */
+		.card{
+			position:relative;z-index:2;max-width:920px;width:92%;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.2));border-radius:12px;padding:32px;box-shadow:0 10px 30px rgba(0,0,0,0.6);backdrop-filter: blur(6px);
+			display:flex;gap:28px;align-items:center;flex-wrap:wrap;
+		}
+
+		.brand{
+			display:flex;flex-direction:column;gap:8px;min-width:220px;
+		}
+		.logo{width:84px;height:84px;border-radius:12px;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:#06131a}
+
+		h1{margin:0;font-size:26px;letter-spacing:0.2px}
+		p.lead{margin:6px 0 0;color:#e6eef0;opacity:0.95}
+
+		.actions{display:flex;gap:12px;align-items:center;margin-left:auto}
+		.btn{appearance:none;border:0;padding:12px 20px;border-radius:999px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px}
+		.btn-primary{background:#10b981;color:#041014;box-shadow:0 6px 18px rgba(16,185,129,0.18)}
+		.btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.08)}
+
+		.note{width:100%;margin-top:14px;color:#cfeee0;font-size:14px;opacity:0.95}
+
+		/* Responsive */
+		@media (max-width:640px){
+			.card{padding:20px;flex-direction:column;align-items:flex-start}
+			.actions{width:100%;margin-left:0;justify-content:stretch}
+			.btn{flex:1;justify-content:center}
+			.brand{min-width:0}
+			h1{font-size:20px}
+		}
+	</style>
 </head>
-<body class="bg-black text-white h-screen flex flex-col overflow-hidden font-sans selection:bg-green-500 selection:text-black">
+<body>
+	<div class="overlay" aria-hidden="true"></div>
 
-    <div class="flex flex-1 overflow-hidden">
-        
-        <!-- SIDEBAR -->
-        <div class="w-64 bg-black h-full flex flex-col gap-2 p-2 hidden md:flex">
-            <div class="bg-[#121212] rounded-lg p-4 flex flex-col gap-4">
-                <div class="flex items-center gap-4 text-white hover:text-white cursor-pointer transition">
-                    <i data-lucide="home" width="24"></i>
-                    <span class="font-bold">Начало</span>
-                </div>
-                <div class="flex items-center gap-4 text-gray-400 hover:text-white cursor-pointer transition">
-                    <i data-lucide="search" width="24"></i>
-                    <span class="font-bold">Търсене</span>
-                </div>
-            </div>
+	<main class="card" role="main" aria-labelledby="maintitle">
+		<div class="brand">
+			<div class="logo" aria-hidden="true">T</div>
+			<div>
+				<h1 id="maintitle">Временно прекъсване за поддръжка</h1>
+				<p class="lead">Връщаме услугата онлайн възможно най-скоро. Благодарим за търпението.</p>
+			</div>
+		</div>
 
-            <div class="bg-[#121212] rounded-lg flex-1 overflow-hidden flex flex-col">
-                <div class="p-4 shadow-lg z-10">
-                    <div class="flex items-center justify-between text-gray-400 mb-4">
-                        <div class="flex items-center gap-2 hover:text-white cursor-pointer transition">
-                            <i data-lucide="library" width="24"></i>
-                            <span class="font-bold">Библиотека</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <i data-lucide="plus" width="20" class="hover:text-white cursor-pointer"></i>
-                            <i data-lucide="arrow-right" width="20" class="hover:text-white cursor-pointer"></i>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 mt-4">
-                        <span class="bg-[#232323] px-3 py-1 rounded-full text-sm text-white cursor-pointer hover:bg-[#3E3E3E] transition">Плейлисти</span>
-                        <span class="bg-[#232323] px-3 py-1 rounded-full text-sm text-white cursor-pointer hover:bg-[#3E3E3E] transition">Изпълнители</span>
-                    </div>
-                </div>
-                
-                <div class="overflow-y-auto px-2 pb-4 scrollbar-hide" id="sidebar-content">
-                    <div class="flex items-center justify-between px-2 py-2 text-gray-400 hover:text-white cursor-pointer">
-                        <i data-lucide="search" width="16"></i>
-                        <div class="flex items-center gap-1 text-sm">
-                            <span>Скорошни</span>
-                            <i data-lucide="list-music" width="16"></i>
-                        </div>
-                    </div>
-                    <!-- Dynamic Playlist Items will be injected here -->
-                </div>
-            </div>
-        </div>
+		<div style="flex:1;min-width:220px">
+			<p class="note">Междувременно можеш да слушаш наличната музика от нашата страница. Някои функции може да са временно ограничени.</p>
+		</div>
 
-        <!-- MAIN CONTENT -->
-        <div id="main-scroll" class="flex-1 bg-[#121212] rounded-lg m-2 ml-0 overflow-y-auto relative scrollbar-hide">
-            
-            <!-- Header -->
-            <div id="sticky-header" class="sticky top-0 h-16 w-full z-20 flex items-center justify-between px-6 transition-colors duration-300 bg-transparent">
-                <div class="flex gap-4 items-center">
-                    <span class="text-white font-bold text-2xl">Tedify</span>
-                    <div class="flex gap-2">
-                        <div class="bg-black/70 p-1 rounded-full cursor-pointer hover:bg-black text-white">
-                            <i data-lucide="chevron-left" width="24"></i>
-                        </div>
-                        <div class="bg-black/70 p-1 rounded-full cursor-pointer hover:bg-black text-white">
-                            <i data-lucide="chevron-right" width="24"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex gap-4 items-center">
-                    <button class="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm hover:scale-105 transition">Разгледай Premium</button>
-                    <button class="bg-black/70 text-white font-bold px-4 py-1.5 rounded-full text-sm flex items-center gap-2 hover:scale-105 transition">
-                         <i data-lucide="arrow-down-circle" width="16"></i> Инсталирай приложението
-                    </button>
-                    <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold cursor-pointer border-2 border-black">
-                        A
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dynamic Background Gradient -->
-            <div id="hero-gradient" class="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-emerald-900 to-[#121212] opacity-80 pointer-events-none transition-colors duration-1000"></div>
-
-            <div class="relative z-10 px-6 pt-4 pb-24">
-                <h1 class="text-3xl font-bold text-white mb-6" id="greeting">Добър ден</h1>
-
-                <!-- Quick Picks Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="quick-picks">
-                    <!-- Javascript will populate this -->
-                </div>
-
-                <!-- Section: Made For You -->
-                <h2 class="text-2xl font-bold text-white mb-4 hover:underline cursor-pointer">Специално за теб</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6" id="made-for-you">
-                    <!-- Javascript will populate this -->
-                </div>
-                
-                <!-- Table View of Tracks -->
-                <div class="mt-12">
-                    <h2 class="text-2xl font-bold text-white mb-4">Твоите любими песни</h2>
-                    <div class="bg-black/20 p-6 rounded-lg">
-                        <div class="grid grid-cols-[16px_4fr_3fr_2fr_minmax(120px,1fr)] gap-4 text-gray-400 text-sm border-b border-white/10 pb-2 mb-4 px-4">
-                            <span>#</span>
-                            <span>Заглавие</span>
-                            <span>Албум</span>
-                            <span>Добавено</span>
-                            <span class="flex justify-end"><i data-lucide="clock" width="16"></i></span>
-                        </div>
-                        <div id="tracks-table">
-                            <!-- Javascript will populate this -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-24"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PLAYER BAR -->
-    <div class="h-24 bg-black border-t border-[#282828] px-4 flex items-center justify-between fixed bottom-0 w-full z-50">
-        
-        <!-- Track Info -->
-        <div class="flex items-center gap-4 w-[30%]">
-            <img id="current-cover" src="" alt="" class="h-14 w-14 rounded object-cover shadow-lg hidden">
-            <div class="flex flex-col justify-center overflow-hidden">
-                <span id="current-title" class="text-white font-sm hover:underline cursor-pointer truncate font-medium">Избери песен...</span>
-                <span id="current-artist" class="text-gray-400 text-xs hover:text-white hover:underline cursor-pointer truncate"></span>
-            </div>
-            <i data-lucide="heart" width="18" class="text-green-500 ml-2 cursor-pointer hover:scale-110 transition hidden" id="like-btn"></i>
-        </div>
-
-        <!-- Controls -->
-        <div class="flex flex-col items-center max-w-[40%] w-full gap-2">
-            <div class="flex items-center gap-6">
-                <i data-lucide="shuffle" width="18" class="text-gray-400 hover:text-white cursor-pointer transition"></i>
-                <i data-lucide="skip-back" width="22" class="text-gray-400 hover:text-white cursor-pointer transition fill-current" onclick="playPrev()"></i>
-                
-                <button id="play-pause-btn" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition active:scale-95" onclick="togglePlay()">
-                    <i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>
-                </button>
-                
-                <i data-lucide="skip-forward" width="22" class="text-gray-400 hover:text-white cursor-pointer transition fill-current" onclick="playNext()"></i>
-                <i data-lucide="repeat" width="18" class="text-gray-400 hover:text-white cursor-pointer transition"></i>
-            </div>
-            
-            <div class="w-full flex items-center gap-2 text-xs text-gray-400 font-mono">
-                <span id="current-time">0:00</span>
-                <div class="flex-1 h-1 bg-[#4d4d4d] rounded-full relative group cursor-pointer">
-                    <div id="progress-bar" class="absolute h-full bg-white rounded-full group-hover:bg-green-500 transition-colors" style="width: 0%"></div>
-                    <input type="range" id="seek-slider" min="0" max="100" value="0" class="absolute w-full h-full opacity-0 cursor-pointer z-10">
-                </div>
-                <span id="duration-time">0:00</span>
-            </div>
-        </div>
-
-        <!-- Volume & Extras -->
-        <div class="flex items-center justify-end gap-3 w-[30%] text-gray-400">
-            <i data-lucide="mic-2" width="18" class="hover:text-white cursor-pointer"></i>
-            <i data-lucide="list-music" width="18" class="hover:text-white cursor-pointer"></i>
-            <i data-lucide="laptop-2" width="18" class="hover:text-white cursor-pointer"></i>
-            <div class="flex items-center gap-2 w-32 group">
-                <i data-lucide="volume-2" width="18" class="hover:text-white cursor-pointer"></i>
-                <div class="h-1 flex-1 bg-[#4d4d4d] rounded-full relative overflow-hidden cursor-pointer">
-                    <div id="volume-bar" class="absolute top-0 left-0 h-full bg-white group-hover:bg-green-500 rounded-full" style="width: 70%"></div>
-                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.7" class="absolute w-full h-full opacity-0 cursor-pointer z-10">
-                </div>
-            </div>
-            <i data-lucide="maximize-2" width="16" class="hover:text-white cursor-pointer"></i>
-        </div>
-
-    </div>
-
-    <!-- UPLOAD MODAL -->
-    <div id="upload-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-        <div class="bg-[#282828] rounded-lg p-8 w-96 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">Добави нова песен</h2>
-                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-white">
-                    <i data-lucide="x" width="24"></i>
-                </button>
-            </div>
-            
-            <form id="upload-form" class="flex flex-col gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">Заглавие на песента</label>
-                    <input type="text" id="song-title" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="Night Drive" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">Изпълнител</label>
-                    <input type="text" id="song-artist" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="Artist Name" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">Албум</label>
-                    <input type="text" id="song-album" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="Album Name" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">Продължителност (мм:сс)</label>
-                    <input type="text" id="song-duration" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="3:45" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">MP3 Файл</label>
-                    <input type="file" id="song-mp3" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none cursor-pointer" accept=".mp3" required>
-                    <p class="text-xs text-gray-400 mt-1">Максимален размер: 50MB</p>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">URL на корицата</label>
-                    <input type="url" id="song-cover" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" placeholder="https://example.com/cover.jpg" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">Цветов градиент</label>
-                    <select id="song-color" class="w-full bg-[#121212] text-white px-3 py-2 rounded border border-gray-600 focus:border-green-500 focus:outline-none" required>
-                        <option value="">Избери цвят...</option>
-                        <option value="from-purple-800">Лилав</option>
-                        <option value="from-blue-800">Синьо</option>
-                        <option value="from-red-900">Червено</option>
-                        <option value="from-green-800">Зелено</option>
-                        <option value="from-amber-800">Амбър</option>
-                        <option value="from-pink-800">Розово</option>
-                        <option value="from-yellow-800">Жълто</option>
-                        <option value="from-indigo-800">Индиго</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="w-full bg-green-500 text-black font-bold py-2 rounded-full hover:bg-green-400 hover:scale-105 transition">
-                    Добави песен
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        const TRACKS = [
-            {
-                id: 1,
-                title: "Amsterdam",
-                artist: "Silver feat. DJ Ceci Ludata Glava",
-                album: "Razbivaciq",
-                duration: "3:20",
-                cover: "data:image/jpeg;base64,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",
-                color: "from-purple-800",
-                audioUrl: "./Silver x Dj Ceci Ludata Glava - Amsterdam _ Силвър х Дж Цеци Лудата Глава - Амстердам [y71BPdtxB1M] [320kbps].mp3" 
-            },
-            {
-                id: 2,
-                title: "Despacito",
-                artist: "Luis Fonsi, Daddy Yankee",
-                album: "Despacito",
-                duration: "4:41",
-                cover: "data:image/jpeg;base64,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",
-                color: "from-blue-800",
-                audioUrl: "./Luis-Fonsi-Ft.-Daddy-Yankee-Despacito.mp3"
-            },
-            {
-                id: 3,
-                title: "Starboy",
-                artist: "The Weeknd, Daft Punk",
-                album: "Starboy",
-                duration: "3:50",
-                cover: "https://images.unsplash.com/photo-1619983081563-430f63602796?q=80&w=1000&auto=format&fit=crop",
-                color: "from-red-900",
-                audioUrl: "./The_weeknd_-_Starboy_Remix_Kirya_YK_(mp3.pm).mp3"
-            },
-            {
-                id: 4,
-                title: "Passo bem solto",
-                artist: "ATLXS",
-                album: "AM",
-                duration: "1:56",
-                cover: "https://soundworldz.com/upload_file/22/230x230/thumb_67fe04f178c2a.webp",
-                color: "from-green-800",
-                audioUrl: "./Passo_Bem_Solto_Slowed.mp3"
-            },
-            {
-                id: 5,
-                title: "Балкаnska двойка",
-                artist: "Selina, DJ damyan",
-                album: "Балкан",
-                duration: "3:15",
-                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7wShQQBIorw9M5hHkwavWjQoAGPmKgahn-w&s",
-                color: "from-amber-800",
-                audioUrl: "./DJ Дамян и Селина - Балканска двойка www.voxymp3.com_.mp3"
-            },
-            {
-                id: 6,
-                title: "Levitating",
-                artist: "Dua Lipa",
-                album: "Future Nostalgia",
-                duration: "3:23",
-                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-RPjQJ9hYnROIYlFVIkzVTEAqOyJkOFUQtg&s",
-                color: "from-pink-800",
-                audioUrl: "./Dua_Lipa_Dababy_-_Levitating_Featuring_(mp3.pm).mp3"
-            }
-        ];
-
-        const PLAYLISTS = [
-            "Любими песни", "BG Rap 2024", "Фитнес Мотивация", "Chill Vibes", "Techno Bunker", "Top 50 - Bulgaria"
-        ];
-
-        let currentTrackIndex = 0;
-        let isPlaying = false;
-        let audio = new Audio();
-        
-        const greetingEl = document.getElementById('greeting'); 
-        const sidebarContent = document.getElementById('sidebar-content');
-        const quickPicksEl = document.getElementById('quick-picks');
-        const madeForYouEl = document.getElementById('made-for-you');
-        const tracksTableEl = document.getElementById('tracks-table');
-        
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = `<i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>`;
-        const pauseIcon = `<i data-lucide="pause" width="20" class="text-black fill-black"></i>`;
-        
-        const currentTitleEl = document.getElementById('current-title');
-        const currentArtistEl = document.getElementById('current-artist');
-        const currentCoverEl = document.getElementById('current-cover');
-        const likeBtnEl = document.getElementById('like-btn');
-        const heroGradient = document.getElementById('hero-gradient');
-
-        const seekSlider = document.getElementById('seek-slider');
-        const progressBar = document.getElementById('progress-bar');
-        const currentTimeEl = document.getElementById('current-time');
-        const durationTimeEl = document.getElementById('duration-time');
-
-        const volumeSlider = document.getElementById('volume-slider');
-        const volumeBar = document.getElementById('volume-bar');
-
-        // --- INITIALIZATION ---
-        function init() {
-            setGreeting();
-            renderSidebar();
-            renderQuickPicks();
-            renderMadeForYou();
-            renderTracksTable();
-            loadTrack(0, false); // Load first track but don't play
-            
-            // Audio Events
-            audio.addEventListener('timeupdate', updateProgress);
-            audio.addEventListener('loadedmetadata', () => {
-                durationTimeEl.innerText = formatTime(audio.duration);
-                seekSlider.max = Math.floor(audio.duration);
-            });
-            audio.addEventListener('ended', playNext);
-            
-            // Input Events
-            seekSlider.addEventListener('input', () => {
-                audio.currentTime = seekSlider.value;
-                updateProgress(); // Immediate visual update
-            });
-            
-            volumeSlider.addEventListener('input', (e) => {
-                audio.volume = e.target.value;
-                volumeBar.style.width = (e.target.value * 100) + '%';
-            });
-
-            // Scroll Effect
-            document.getElementById('main-scroll').addEventListener('scroll', (e) => {
-                const opacity = Math.min(e.target.scrollTop / 200, 1);
-                document.getElementById('sticky-header').style.backgroundColor = `rgba(18, 18, 18, ${opacity})`;
-            });
-
-            lucide.createIcons();
-        }
-
-        // --- FUNCTIONS ---
-
-        function setGreeting() {
-            const hour = new Date().getHours();
-            let text = "Добър вечер";
-            if (hour < 12) text = "Добро утро";
-            else if (hour < 18) text = "Добър ден";
-            greetingEl.innerText = text;
-        }
-
-        function renderSidebar() {
-            PLAYLISTS.forEach(playlist => {
-                const div = document.createElement('div');
-                div.className = "flex items-center gap-3 p-2 rounded-md hover:bg-[#1f1f1f] cursor-pointer group";
-                div.innerHTML = `
-                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded flex items-center justify-center text-white">
-                        <i data-lucide="list-music" width="20"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-white font-medium truncate w-32">${playlist}</span>
-                        <span class="text-gray-400 text-sm group-hover:text-white">Плейлист • Ti</span>
-                    </div>
-                `;
-                sidebarContent.appendChild(div);
-            });
-        }
-
-        function renderQuickPicks() {
-            TRACKS.slice(0, 6).forEach((track, index) => {
-                const div = document.createElement('div');
-                div.className = "bg-white/10 group hover:bg-white/20 transition rounded flex items-center gap-4 overflow-hidden cursor-pointer h-20";
-                div.onclick = () => loadTrack(index, true);
-                div.innerHTML = `
-                    <img src="${track.cover}" alt="" class="h-full w-20 object-cover shadow-lg">
-                    <span class="font-bold text-white truncate flex-1 pr-2">${track.title}</span>
-                    <div class="mr-4 bg-green-500 rounded-full p-3 shadow-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center play-btn-hover">
-                         <i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>
-                    </div>
-                `;
-                quickPicksEl.appendChild(div);
-            });
-        }
-
-        function renderMadeForYou() {
-            TRACKS.forEach((track, index) => {
-                const div = document.createElement('div');
-                div.className = "bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition duration-300 cursor-pointer group flex flex-col gap-3";
-                div.onclick = () => loadTrack(index, true);
-                div.innerHTML = `
-                    <div class="relative w-full aspect-square rounded-md overflow-hidden shadow-xl">
-                        <img src="${track.cover}" alt="${track.title}" class="w-full h-full object-cover">
-                        <div class="absolute bottom-2 right-2 bg-green-500 rounded-full p-3 shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center hover:scale-105">
-                            <i data-lucide="play" width="20" class="text-black ml-1 fill-black"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-white font-bold truncate mb-1">${track.title}</h3>
-                        <p class="text-gray-400 text-sm line-clamp-2">By ${track.artist}</p>
-                    </div>
-                `;
-                madeForYouEl.appendChild(div);
-            });
-        }
-
-        function renderTracksTable() {
-            tracksTableEl.innerHTML = '';
-            TRACKS.forEach((track, index) => {
-                const div = document.createElement('div');
-                div.id = `track-row-${index}`;
-                div.className = "grid grid-cols-[16px_4fr_3fr_2fr_minmax(120px,1fr)] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 cursor-pointer group text-sm text-gray-400";
-                div.onclick = () => loadTrack(index, true);
-                
-                div.innerHTML = `
-                    <span class="track-index group-hover:hidden">${index + 1}</span>
-                    <span class="hidden group-hover:block text-white play-icon-row">
-                        <i data-lucide="play" width="14" fill="currentColor"></i>
-                    </span>
-                    <span class="playing-gif text-green-500 hidden">
-                         <i data-lucide="bar-chart-2" width="14" class="text-green-500"></i>
-                    </span>
-                    
-                    <div class="flex items-center gap-3">
-                        <img src="${track.cover}" class="w-10 h-10 rounded" alt="">
-                        <div class="flex flex-col">
-                            <span class="font-medium text-base truncate text-white track-title-row">${track.title}</span>
-                            <span class="group-hover:text-white transition">${track.artist}</span>
-                        </div>
-                    </div>
-                    <span class="group-hover:text-white transition truncate">${track.album}</span>
-                    <span class="group-hover:text-white transition">Преди 2 дни</span>
-                    <div class="flex items-center justify-end gap-4">
-                        <i data-lucide="heart" width="16" class="hidden group-hover:block hover:text-green-500 cursor-pointer"></i>
-                        <span class="text-right">${track.duration}</span>
-                        <i data-lucide="more-horizontal" width="16" class="hidden group-hover:block hover:text-white cursor-pointer"></i>
-                    </div>
-                `;
-                tracksTableEl.appendChild(div);
-            });
-            lucide.createIcons(); // Re-init icons for dynamic content
-        }
-
-        function loadTrack(index, shouldPlay = true) {
-            currentTrackIndex = index;
-            const track = TRACKS[index];
-            
-            // Update Audio Source
-            audio.src = track.audioUrl;
-            
-            // Update UI Info
-            currentTitleEl.innerText = track.title;
-            currentArtistEl.innerText = track.artist;
-            currentCoverEl.src = track.cover;
-            currentCoverEl.classList.remove('hidden');
-            likeBtnEl.classList.remove('hidden');
-            
-            // Update Gradient
-            heroGradient.className = `absolute top-0 left-0 w-full h-80 bg-gradient-to-b ${track.color} to-[#121212] opacity-80 pointer-events-none transition-colors duration-1000`;
-
-            // Highlight in Table
-            updateTableHighlight(index);
-
-            if (shouldPlay) {
-                audio.play();
-                isPlaying = true;
-                updatePlayButton();
-            }
-        }
-
-        function updateTableHighlight(activeIndex) {
-            // Reset all rows
-            for (let i = 0; i < TRACKS.length; i++) {
-                const row = document.getElementById(`track-row-${i}`);
-                if (row) {
-                    row.classList.remove('active-track');
-                    row.querySelector('.track-title-row').classList.remove('text-green-500');
-                    row.querySelector('.track-title-row').classList.add('text-white');
-                    // Hide playing icon, show index
-                    row.querySelector('.playing-gif').classList.add('hidden');
-                    row.querySelector('.track-index').classList.remove('hidden');
-                }
-            }
-
-            // Highlight active
-            const activeRow = document.getElementById(`track-row-${activeIndex}`);
-            if (activeRow) {
-                activeRow.classList.add('active-track');
-                activeRow.querySelector('.track-title-row').classList.add('text-green-500');
-                activeRow.querySelector('.track-title-row').classList.remove('text-white');
-                // Show playing icon, hide index
-                activeRow.querySelector('.playing-gif').classList.remove('hidden');
-                activeRow.querySelector('.track-index').classList.add('hidden');
-            }
-        }
-
-        function togglePlay() {
-            if (isPlaying) {
-                audio.pause();
-                isPlaying = false;
-            } else {
-                audio.play();
-                isPlaying = true;
-            }
-            updatePlayButton();
-        }
-
-        function updatePlayButton() {
-            if (isPlaying) {
-                playPauseBtn.innerHTML = pauseIcon;
-            } else {
-                playPauseBtn.innerHTML = playIcon;
-            }
-            lucide.createIcons();
-        }
-
-        function playNext() {
-            let nextIndex = currentTrackIndex + 1;
-            if (nextIndex >= TRACKS.length) nextIndex = 0;
-            loadTrack(nextIndex, true);
-        }
-
-        function playPrev() {
-            let prevIndex = currentTrackIndex - 1;
-            if (prevIndex < 0) prevIndex = TRACKS.length - 1;
-            loadTrack(prevIndex, true);
-        }
-
-        function updateProgress() {
-            const { duration, currentTime } = audio;
-            const percent = (currentTime / duration) * 100;
-            
-            if (!isNaN(duration)) {
-                seekSlider.value = currentTime;
-                progressBar.style.width = `${percent}%`;
-                currentTimeEl.innerText = formatTime(currentTime);
-            }
-        }
-
-        function formatTime(seconds) {
-            if (!seconds) return "0:00";
-            const min = Math.floor(seconds / 60);
-            const sec = Math.floor(seconds % 60);
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        }
-
-        // Upload Modal Functions
-        function openUploadModal() {
-            document.getElementById('upload-modal').classList.remove('hidden');
-        }
-
-        function closeUploadModal() {
-            document.getElementById('upload-modal').classList.add('hidden');
-            document.getElementById('upload-form').reset();
-        }
-
-        function addNewTrack(trackData) {
-            const newId = Math.max(...TRACKS.map(t => t.id)) + 1;
-            const newTrack = {
-                id: newId,
-                title: trackData.title,
-                artist: trackData.artist,
-                album: trackData.album,
-                duration: trackData.duration,
-                cover: trackData.cover,
-                color: trackData.color,
-                audioUrl: trackData.audioUrl
-            };
-            TRACKS.push(newTrack);
-            renderTracksTable(); // Re-render the table
-            renderMadeForYou(); // Re-render other sections
-        }
-
-        // Plus button click handler
-        document.addEventListener('DOMContentLoaded', function() {
-            const plusBtn = document.querySelector('[data-lucide="plus"]');
-            if (plusBtn) {
-                plusBtn.addEventListener('click', openUploadModal);
-            }
-        });
-
-        // Upload form submission
-        document.getElementById('upload-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const title = document.getElementById('song-title').value;
-            const artist = document.getElementById('song-artist').value;
-            const album = document.getElementById('song-album').value;
-            const duration = document.getElementById('song-duration').value;
-            const cover = document.getElementById('song-cover').value;
-            const mp3File = document.getElementById('song-mp3').files[0];
-            const color = document.getElementById('song-color').value;
-
-            if (!title || !artist || !album || !duration || !cover || !mp3File || !color) {
-                alert('Моля, попълни всички полета!');
-                return;
-            }
-
-            // Check file size (max 50MB)
-            const maxSize = 50 * 1024 * 1024;
-            if (mp3File.size > maxSize) {
-                alert('MP3 файлът е твърде голям! Максимум 50MB.');
-                return;
-            }
-
-            // Check file type
-            if (mp3File.type !== 'audio/mpeg') {
-                alert('Моля, избери MP3 файл!');
-                return;
-            }
-
-            // Create a URL for the uploaded file
-            const audioUrl = URL.createObjectURL(mp3File);
-            const fileName = mp3File.name;
-
-            addNewTrack({
-                title,
-                artist,
-                album,
-                duration,
-                cover,
-                audioUrl, // Use the blob URL
-                fileName, // Store original filename for reference
-                color
-            });
-
-            // Clear form and close modal
-            this.reset();
-            closeUploadModal();
-            alert(`Песента "${title}" е добавена успешно!`);
-        });
-
-        // Run Init
-        init();
-
-    </script>
+		<div class="actions" role="region" aria-label="Действия">
+			<a id="listen-btn" class="btn btn-primary" href="music.html">Слушай музика</a>
+			<a class="btn btn-ghost" href="mailto:admin@tedify.local">За контакти</a>
+		</div>
+	</main>
 </body>
+
+	<script>
+		// Ensure the Listen button navigates even in embedded previews
+		(function(){
+			const btn = document.getElementById('listen-btn');
+			if (!btn) return;
+			btn.addEventListener('click', function(e){
+				// allow normal navigation to proceed for real browsers
+				// but prevent default and attempt programmatic navigation if needed
+				e.preventDefault();
+				const url = btn.getAttribute('href') || 'music.html';
+				// try a few navigation methods for different environments
+				try{ window.location.href = url; return; }catch(err){}
+				try{ window.location.assign(url); return; }catch(err){}
+				try{ window.open(url, '_self'); return; }catch(err){}
+				// fallback: create and click a link
+				const a = document.createElement('a'); a.href = url; a.target = '_self'; a.style.display='none'; document.body.appendChild(a); a.click();
+			});
+		})();
+	</script>
+
+</html>
 </html>
