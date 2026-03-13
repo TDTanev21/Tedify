@@ -76,17 +76,34 @@
 		(function(){
 			const btn = document.getElementById('listen-btn');
 			if (!btn) return;
-			btn.addEventListener('click', function(e){
+			btn.addEventListener('click', async function(e){
 				e.preventDefault();
-				// Resolve href against the current document base so hosted subpaths are handled
 				const raw = btn.getAttribute('href') || 'music.html';
 				const absolute = new URL(raw, document.baseURI).href;
-				// try navigation
-				try{ window.location.href = absolute; return; }catch(err){}
-				try{ window.location.assign(absolute); return; }catch(err){}
-				try{ window.open(absolute, '_self'); return; }catch(err){}
-				// fallback: create and click a link
-				const a = document.createElement('a'); a.href = absolute; a.target = '_self'; a.style.display='none'; document.body.appendChild(a); a.click();
+
+				// Try to fetch the target first to see what the host returns (diagnostic)
+				try {
+					const resp = await fetch(absolute, { method: 'GET', cache: 'no-store', credentials: 'same-origin' });
+					const txt = await resp.text();
+					// Basic sanity check: does the response contain an HTML title or expected id marker
+					const looksLikeHtml = /<\!doctype|<html|<title|<body/i.test(txt);
+					const containsMarker = /id="main-scroll"|id="tracks-table"|Tedify/.test(txt);
+					if (resp.ok && (looksLikeHtml || containsMarker)) {
+						// Good: navigate normally
+						window.location.href = absolute;
+						return;
+					} else {
+						// Unexpected response: show diagnostics and open in new tab as fallback
+						console.error('Fetch succeeded but response unexpected for', absolute, resp.status);
+						alert(`Hosted fetch returned ${resp.status}. The server may be rewriting routes. Opening in a new tab so you can inspect network responses.`);
+						window.open(absolute, '_blank');
+						return;
+					}
+				} catch (err) {
+					console.error('Fetch error for', absolute, err);
+					alert('Failed to fetch music.html from the host — see console for details. Attempting to open in a new tab.');
+					try{ window.open(absolute, '_blank'); }catch(e){}
+				}
 			});
 		})();
 	</script>
