@@ -77,16 +77,16 @@
 			const btn = document.getElementById('listen-btn');
 			if (!btn) return;
 			btn.addEventListener('click', function(e){
-				// allow normal navigation to proceed for real browsers
-				// but prevent default and attempt programmatic navigation if needed
 				e.preventDefault();
-				const url = btn.getAttribute('href') || 'music.html';
-				// try a few navigation methods for different environments
-				try{ window.location.href = url; return; }catch(err){}
-				try{ window.location.assign(url); return; }catch(err){}
-				try{ window.open(url, '_self'); return; }catch(err){}
+				// Resolve href against the current document base so hosted subpaths are handled
+				const raw = btn.getAttribute('href') || 'music.html';
+				const absolute = new URL(raw, document.baseURI).href;
+				// try navigation
+				try{ window.location.href = absolute; return; }catch(err){}
+				try{ window.location.assign(absolute); return; }catch(err){}
+				try{ window.open(absolute, '_self'); return; }catch(err){}
 				// fallback: create and click a link
-				const a = document.createElement('a'); a.href = url; a.target = '_self'; a.style.display='none'; document.body.appendChild(a); a.click();
+				const a = document.createElement('a'); a.href = absolute; a.target = '_self'; a.style.display='none'; document.body.appendChild(a); a.click();
 			});
 		})();
 	</script>
@@ -102,7 +102,9 @@
 
 			function tryLoad(index){
 				if (index >= tryUrls.length) return;
-				const url = tryUrls[index];
+				// resolve relative to document base (handles subpaths on host)
+				const rel = tryUrls[index];
+				const url = new URL(rel, document.baseURI).href;
 				const img = new Image();
 				img.onload = () => { document.body.style.backgroundImage = `url("${url}")`; };
 				img.onerror = () => tryLoad(index+1);
